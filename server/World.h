@@ -24,6 +24,7 @@ public:
     static World *getWorld();
     void addUser(User *user);
     void removeUser(int socketid);
+    bool hasUser(string username);
     string getAllUserString();
     bool handleSendMessage(User *sender, string srecv);
 };

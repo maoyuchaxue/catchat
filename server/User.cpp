@@ -69,9 +69,13 @@ void* User::run(void *user) {
         case 'i': // login
             tmp = that->checkLogin(srecv);
             if (tmp != "") {
-                that->setUsername(tmp);
-                that->getWorld()->addUser(that);
-                res_str = "success";
+                if (that->getWorld()->hasUser(tmp)) {
+                    res_str = "error";
+                } else {
+                    that->setUsername(tmp);
+                    that->getWorld()->addUser(that);
+                    res_str = "success";
+                }
             } else {
                 res_str = "error";
             }
@@ -104,7 +108,7 @@ void* User::run(void *user) {
         case 'x': // user exits
             that->getWorld()->removeUser(socketid);
             pthread_exit(NULL);
-            break;
+            return NULL;
 
         case 'm': // send message
             if (that->getWorld()->handleSendMessage(that, srecv.substr(2))) {

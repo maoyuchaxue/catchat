@@ -81,6 +81,17 @@ void World::addUser(User *user) {
     pthread_mutex_unlock(&users_mutex);
 }
 
+bool World::hasUser(string username) {
+    pthread_mutex_lock(&users_mutex);
+    for (int i = 0; i < users.size(); i++) {
+        if (users[i]->getUsername() == username) {
+            return true;
+        }
+    }
+    pthread_mutex_unlock(&users_mutex);
+    return false;
+}
+
 string World::getAllUserString() {
     string res_str = "";
 

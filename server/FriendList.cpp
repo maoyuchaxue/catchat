@@ -21,7 +21,9 @@ void FriendList::loadUserData(string name) {
     while (fin) {
         string nm;
         fin >> nm;
-        usernames.push_back(nm);
+        if (nm != "") {
+            usernames.push_back(nm);
+        }
     }
 
     fin.close();
