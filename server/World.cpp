@@ -115,6 +115,10 @@ bool World::handleSendMessage(User *sender, string srecv) {
             break;
         }
     }
+
+    // if (!foundUser) {
+
+    // }
     pthread_mutex_unlock(&users_mutex);
 
     return foundUser;

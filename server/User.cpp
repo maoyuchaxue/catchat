@@ -17,6 +17,7 @@ User::User(World *_world, int _socketid) {
     world = _world;
     socketid = _socketid;
     isLogin = false;
+    friend_list = new FriendList();
 }
 
 void User::startThread() {
@@ -123,12 +124,18 @@ void* User::run(void *user) {
             break;
 
         case 'l': // get friend list
+            res_str = that->getFriendList()->getFriendListString();
+            res = res_str.c_str();
+            send_length = strlen(res);
+            send(socketid, res, send_length, 0);
             break;
 
         case 'a': // add in friend list
+            that->getFriendList()->addFriend(getFirstWord(srecv));
             break;
 
         case 'd': // remove from friend list
+            that->getFriendList()->removeFriend(getFirstWord(srecv));
             break;
         }
     }
@@ -158,6 +165,7 @@ string User::checkLogin(string srecv) {
 
     if (Verify::checkUser(username, password)) {
         isLogin = true;
+        friend_list->loadUserData(username);
         return username;
     } else {
         return "";
@@ -187,8 +195,19 @@ string User::checkRegister(string srecv) {
 
     if (Verify::registerUser(username, password)) {
         isLogin = true;
+        friend_list->loadUserData(username);
         return username;
     } else {
         return "";
+    }
+}
+
+string User::getFirstWord(string raw_data) {
+    string de_prefixed = raw_data.substr(2);
+    int ind = de_prefixed.find("|");
+    if (ind < 0) {
+        return "";
+    } else {
+        return de_prefixed.substr(0, ind);
     }
 }

@@ -1,5 +1,5 @@
-main : FriendList.o LatestMessage.o User.o Verify.o main.o World.o
-	g++ -pthread -std=c++11 -o catchat LatestMessage.o User.o Verify.o main.o World.o
+main : FriendList.o LatestMessage.o User.o Verify.o main.o World.o FriendList.o 
+	g++ -pthread -std=c++11 -o catchat LatestMessage.o User.o Verify.o main.o World.o FriendList.o 
 
 LatestMessage.o : LatestMessage.h LatestMessage.cpp
 	g++ -std=c++11 -c -o LatestMessage.o LatestMessage.cpp
