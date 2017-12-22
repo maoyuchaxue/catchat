@@ -2,6 +2,7 @@
 #ifndef USER_H
 #define USER_H
 
+class User;
 
 #include <vector>
 #include "World.h"

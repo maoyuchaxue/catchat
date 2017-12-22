@@ -1,6 +1,8 @@
 #ifndef WORLD_H
 #define WORLD_H
 
+class World;
+
 #include "User.h"
 #include <vector>
 
