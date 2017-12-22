@@ -92,3 +92,30 @@ string World::getAllUserString() {
 
     return res_str;
 }
+
+bool World::handleSendMessage(User *sender, string srecv) {
+    
+    int d1 = srecv.find('|', 2);
+    if (d1 == -1) {
+        return false;
+    }
+
+    string username = srecv.substr(0, d1);
+    string send_message = srecv.substr(d1+1);
+
+    string message = sender->getUsername() + "|" + send_message;
+
+    bool foundUser = false;
+    pthread_mutex_lock(&users_mutex);
+    for (int i = 0; i < users.size(); i++) {
+        if (username == users[i]->getUsername()) {
+            foundUser = true;
+            int socketid = users[i]->getSocketId();
+            send(socketid, message.c_str(), strlen(message.c_str()), 0);
+            break;
+        }
+    }
+    pthread_mutex_unlock(&users_mutex);
+
+    return foundUser;
+}

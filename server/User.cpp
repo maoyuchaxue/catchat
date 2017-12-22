@@ -16,6 +16,7 @@
 User::User(World *_world, int _socketid) {
     world = _world;
     socketid = _socketid;
+    isLogin = false;
 }
 
 void User::startThread() {
@@ -40,10 +41,15 @@ void* User::run(void *user) {
     char p[13] = "hello world!";
     send(socketid, p, strlen(p), 0);
 
-    char buf[MAX_BUF_SIZE];
-
     while (1) {
+        char buf[MAX_BUF_SIZE];
         long recvbytes = recv(socketid, buf, MAX_BUF_SIZE, 0);
+        if (recvbytes <= 0) {
+            that->getWorld()->removeUser(socketid);
+            pthread_exit(NULL);
+            break;
+        }
+
         printf("get %s\n", buf);
 
         if (buf[1] != ':') {
@@ -100,7 +106,14 @@ void* User::run(void *user) {
             break;
 
         case 'm': // send message
-            
+            if (that->getWorld()->handleSendMessage(that, srecv.substr(2))) {
+                res_str = "success";
+            } else {
+                res_str = "error";
+            }
+            res = res_str.c_str();
+            send_length = strlen(res);
+            send(socketid, res, send_length, 0);
             break;
 
         case 'p': // get all pending messages
@@ -125,6 +138,10 @@ void* User::run(void *user) {
 string User::checkLogin(string srecv) {
     printf("login: %s\n", srecv.c_str());
 
+    if (isLogin) {
+        return "";
+    }
+
     int d1 = srecv.find('|', 2);
     if (d1 == -1) {
         return "";
@@ -140,6 +157,7 @@ string User::checkLogin(string srecv) {
     string password = srecv.substr(d1+1, d2-d1-1);
 
     if (Verify::checkUser(username, password)) {
+        isLogin = true;
         return username;
     } else {
         return "";
@@ -148,6 +166,10 @@ string User::checkLogin(string srecv) {
 
 string User::checkRegister(string srecv) {
     printf("register: %s\n", srecv.c_str());
+
+    if (isLogin) {
+        return "";
+    }
 
     int d1 = srecv.find('|', 2);
     if (d1 == -1) {
@@ -164,6 +186,7 @@ string User::checkRegister(string srecv) {
     string password = srecv.substr(d1+1, d2-d1-1);
 
     if (Verify::registerUser(username, password)) {
+        isLogin = true;
         return username;
     } else {
         return "";

@@ -25,6 +25,7 @@ public:
     void addUser(User *user);
     void removeUser(int socketid);
     string getAllUserString();
+    bool handleSendMessage(User *sender, string srecv);
 };
 
 #endif

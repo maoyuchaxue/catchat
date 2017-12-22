@@ -18,6 +18,7 @@ private:
     pthread_t thread_id;
     World *world;
     string username;
+    bool isLogin;
     static void *run(void *user);
 
 public:
