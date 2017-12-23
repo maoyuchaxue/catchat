@@ -72,12 +72,14 @@ void World::removeUser(int socketid) {
         }
     }
     close(socketid);
+    syncWithAllExcept(socketid);
     pthread_mutex_unlock(&users_mutex);
 }
 
 void World::addUser(User *user) {
     pthread_mutex_lock(&users_mutex);
     users.push_back(user);
+    syncWithAllExcept(user->getSocketId());
     pthread_mutex_unlock(&users_mutex);
 }
 
@@ -137,6 +139,9 @@ bool World::handleSendMessage(User *sender, string srecv) {
 
 
 void World::sendConfirmRequest(string target_username, string from_username) {
+    if (target_username == from_username) {
+        return ;
+    }
     string message = "F:" + from_username + "|";
 
     bool foundUser = false;
@@ -163,7 +168,7 @@ void World::addFriendPair(string u1, string u2) {
         if (u1 == users[i]->getUsername()) {
             FriendList *friendList = users[i]->getFriendList();
             friendList->addFriend(u2);
-            string message = friendList->getFriendListString();
+            string message = "l:" + friendList->getFriendListString();
 
             int socketid = users[i]->getSocketId();
             send(socketid, message.c_str(), strlen(message.c_str()), 0);
@@ -172,7 +177,7 @@ void World::addFriendPair(string u1, string u2) {
         if (u2 == users[i]->getUsername()) {
             FriendList *friendList = users[i]->getFriendList();
             friendList->addFriend(u1);
-            string message = friendList->getFriendListString();
+            string message = "l:" + friendList->getFriendListString();
             
             int socketid = users[i]->getSocketId();
             send(socketid, message.c_str(), strlen(message.c_str()), 0);
@@ -194,4 +199,41 @@ void World::addFriendPair(string u1, string u2) {
     }
 
     pthread_mutex_unlock(&users_mutex); 
+}
+
+void World::refusedFriendRequest(string target_username, string from_username) {
+
+    pthread_mutex_lock(&users_mutex);
+    vector<int> delete_indexes;
+
+    for (int i = 0; i < pending_friend_requests.size(); i++) {
+        pair<string, string> req = pending_friend_requests[i];
+        if (req.first == target_username && req.second == from_username) {
+            // is a pending request
+            delete_indexes.push_back(i);
+        }
+    }
+
+    for (int i = delete_indexes.size()-1; i >= 0; i--) {
+        pending_friend_requests.erase(pending_friend_requests.begin() + i);
+    }
+
+    pthread_mutex_unlock(&users_mutex); 
+}
+
+
+void World::syncWithAllExcept(int exceptId) {
+    string res_str = "u:";
+    for (int i = 0; i < users.size(); i++) {
+        res_str += users[i]->getUsername() + "|";
+    }
+
+    printf("sync: %s\n", res_str.c_str());
+
+    for (int i = 0; i < users.size(); i++) {
+        int tid = users[i]->getSocketId();
+        if (tid != exceptId) {
+            send(tid, res_str.c_str(), strlen(res_str.c_str()), 0);
+        }
+    }
 }

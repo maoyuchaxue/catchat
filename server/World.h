@@ -30,7 +30,9 @@ public:
     string getAllUserString();
     bool handleSendMessage(User *sender, string srecv);
     void sendConfirmRequest(string target_username, string from_username);
+    void refusedFriendRequest(string target_username, string from_username);
     void addFriendPair(string u1, string u2);
+    void syncWithAllExcept(int exceptId);
 };
 
 #endif

@@ -29,6 +29,24 @@ body {
     border-color: #666;
 }
 
+#confirm-modal {
+    background: #333;
+}
+
+#confirm-dialog {
+    background: #444;
+    color: #ccc;
+}
+
+#confirm-modal-header {
+    border-color: #666;
+}
+
+#confirm-modal-footer {
+    border-color: #666;
+}
+
+
 #app-icon {
     border-radius: 20px;
 }
@@ -70,7 +88,6 @@ body {
 .user-group {
     padding-top: 15px;
 }
-
 
 .group-title {
     color: #9E9E9E;
@@ -129,4 +146,18 @@ body {
 }
 ::-webkit-scrollbar-thumb:active {
 	background-color:rgba(97,116,143,0.8);
+}
+
+#friend-operation-button {
+    color: #adadad;
+    cursor: pointer;
+}
+
+#friend-operation-button:hover {
+    color: #ddd;
+}
+
+#chat-title {
+    display: flex;
+    justify-content: space-between;
 }

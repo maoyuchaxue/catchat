@@ -121,8 +121,6 @@ void* User::run(void *user) {
             send(socketid, res, send_length, 0);
             break;
 
-        case 'p': // get all pending messages
-            break;
 
         case 'f': // send file
             break;
@@ -143,8 +141,16 @@ void* User::run(void *user) {
             that->getWorld()->addFriendPair(getFirstWord(srecv), that->getUsername());
             break;
 
+        case 'p': // refuse friend confirmation
+            that->getWorld()->refusedFriendRequest(that->getUsername(), getFirstWord(srecv));
+            break;
+
         case 'd': // remove from friend list
             that->getFriendList()->removeFriend(getFirstWord(srecv));
+            res_str = "l:" + that->getFriendList()->getFriendListString();
+            res = res_str.c_str();
+            send_length = strlen(res);
+            send(socketid, res, send_length, 0);
             break;
         }
     }

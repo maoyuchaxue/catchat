@@ -37,6 +37,24 @@
         </div>
     </div>
 
+    <div class="modal" tabindex="-1" role="dialog" data-show="true" data-keyboard="false" data-focus="true" id="confirm-modal">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content" id="confirm-dialog">
+            <div class="modal-header" id="confirm-modal-header">
+                <h5 class="modal-title">好友请求</h5>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div><span id="request-friend-name"></span>请求加您为好友！</div>
+            </div>
+            <div class="modal-footer" id="confirm-modal-footer">
+                <button type="button" class="btn btn-primary" id="confirm-friend-button">通过</button>
+                <button type="button" class="btn btn-secondary" id="refuse-friend-button">拒绝</button>
+            </div>
+            </div>
+        </div>
+    </div>
+
     <nav class="navbar navbar-light" style="background-color: #222;">
         <div class="navbar-text">
             <img src="assets/icon.png" width="50" height="50" id="app-icon" alt="">
@@ -63,11 +81,18 @@
                     <div id="friend-list">
                     </div>
                 </div>
+
+                <div class="user-group" id="pending-group">
+                    <div class="group-title">好友请求 - <span id="pending-users">0</span></div>
+                    <div id="pending-list">
+                    </div>
+                </div>
             </div>
 
             <div id="chat-message-column" class="col-9">
                 <div id="chat-title">
-                    
+                    <span id="chat-title-text"></span>  
+                    <span id="friend-operation-button"></span>
                 </div>
                 <div id="chat-message">
                 </div>

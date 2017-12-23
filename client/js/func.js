@@ -1,4 +1,3 @@
-import { Socket } from 'dgram';
 
 var net = require('net');
 
@@ -8,11 +7,13 @@ var PORT = 4396;
 var logged_in = false;
 var global_username = null;
 var chating_with_username = null;
+var pending_request_username = null;
 
 var allusers = [];
 var tot_users = 0;
 var allfriends = [];
 var tot_friends = 0;
+var pendingusers = [];
 
 var all_messages_with_user = {};
 
@@ -180,12 +181,14 @@ function checkAllFriends(retStr) {
 
 function setChatWith(username) {
     chating_with_username = username;
-    $("#chat-title").text(username);
+    $("#chat-title-text").text(username);
     $("#chat-message").empty();
 
     if (allfriends.indexOf(chating_with_username) < 0) {
+        $("#friend-operation-button").text("加为好友");
         return ;
     }
+    $("#friend-operation-button").text("删除好友");
 
     messages = all_messages_with_user[username];
 
@@ -262,18 +265,67 @@ function getChatMessage(recvStr) {
 function toggleFriend() {
     if (allfriends.indexOf(chating_with_username) < 0) {
         // not friend
-        client.write("")
+        client.write("a:" + chating_with_username + "|");
     } else {
-
+        client.write("d:" + chating_with_username + "|");
     }
 }
 
 function getFriendRequest(reqStr) {
+    var ind = reqStr.indexOf("|");
+    if (ind >= 0) {
+        pendingusers.push(reqStr.substring(0, ind));
+        refreshFriendRequests();
+    }
+}
 
+function acceptFriendRequest() {
+    client.write("g:" + pending_request_username + "|");
+    var index = pendingusers.indexOf(pending_request_username);
+    if (index >= 0) {
+        pendingusers.splice(index, 1);
+        refreshFriendRequests();
+    }
+    $("#confirm-modal").modal('hide');
+}
+
+function refuseFriendRequest() {
+    client.write("p:" + pending_request_username + "|");
+    var index = pendingusers.indexOf(pending_request_username);
+    if (index >= 0) {
+        pendingusers.splice(index, 1);
+        refreshFriendRequests();
+    }
+    $("#confirm-modal").modal('hide');
+}
+
+
+function refreshFriendRequests() {
+
+    var tot_pending = pendingusers.length;
+    $("#pending-users").text(tot_pending);
+    $("#pending-list").empty();
+
+    for (var i = 0; i < pendingusers.length; i++) {
+        $("#pending-list").append($('<div class="user-card pending-user"></div>').text(pendingusers[i]));
+        console.log("pending: " + pendingusers[i]);
+    }
+
+    $(".pending-user").click(function() {
+        openPendingInfo($(this).text());
+    })
+}
+
+function openPendingInfo(name) {
+    pending_request_username = name;
+    $("#request-friend-name").text(name);
+    $("#confirm-modal").modal();
 }
 
 $("#send-message-button").click(sendChatMessage);
 $("#input-message-group").hide();
 $("#toggle-friend-button").hide();
 $("#toggle-friend-button").click(toggleFriend);
-
+$("#confirm-friend-button").click(acceptFriendRequest);
+$("#refuse-friend-button").click(refuseFriendRequest);
+$("#friend-operation-button").click(toggleFriend);
