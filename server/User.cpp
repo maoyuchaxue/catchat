@@ -70,14 +70,14 @@ void* User::run(void *user) {
             tmp = that->checkLogin(srecv);
             if (tmp != "") {
                 if (that->getWorld()->hasUser(tmp)) {
-                    res_str = "error";
+                    res_str = "i:onlined";
                 } else {
                     that->setUsername(tmp);
                     that->getWorld()->addUser(that);
-                    res_str = "success";
+                    res_str = "i:success" + tmp;
                 }
             } else {
-                res_str = "error";
+                res_str = "i:accounterror";
             }
             res = res_str.c_str();
             send_length = strlen(res);
@@ -89,9 +89,9 @@ void* User::run(void *user) {
             if (tmp != "") {
                 that->setUsername(tmp);
                 that->getWorld()->addUser(that);
-                res_str = "success";
+                res_str = "r:success" + tmp;
             } else {
-                res_str = "error";
+                res_str = "r:error";
             }
             res = res_str.c_str();
             send_length = strlen(res);
@@ -99,7 +99,7 @@ void* User::run(void *user) {
             break;
 
         case 'u': // get list of all users
-            res_str = that->getWorld()->getAllUserString();
+            res_str = "u:" + that->getWorld()->getAllUserString();
             res = res_str.c_str();
             send_length = strlen(res);
             send(socketid, res, send_length, 0);
@@ -112,9 +112,9 @@ void* User::run(void *user) {
 
         case 'm': // send message
             if (that->getWorld()->handleSendMessage(that, srecv.substr(2))) {
-                res_str = "success";
+                res_str = "m:success";
             } else {
-                res_str = "error";
+                res_str = "m:error";
             }
             res = res_str.c_str();
             send_length = strlen(res);
@@ -128,14 +128,19 @@ void* User::run(void *user) {
             break;
 
         case 'l': // get friend list
-            res_str = that->getFriendList()->getFriendListString();
+            res_str = "l:" + that->getFriendList()->getFriendListString();
             res = res_str.c_str();
             send_length = strlen(res);
             send(socketid, res, send_length, 0);
             break;
 
         case 'a': // add in friend list
-            that->getFriendList()->addFriend(getFirstWord(srecv));
+            // that->getFriendList()->addFriend(getFirstWord(srecv));
+            that->getWorld()->sendConfirmRequest(getFirstWord(srecv), that->getUsername());
+            break;
+
+        case 'g': // add friend confirmation
+            that->getWorld()->addFriendPair(getFirstWord(srecv), that->getUsername());
             break;
 
         case 'd': // remove from friend list

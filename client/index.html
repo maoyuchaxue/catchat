@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="js/jquery-3.2.1.js"></script>
+    <script>if (typeof module === 'object') {window.jQuery = window.$ = module.exports;};</script>
+    <script defer src="js/fontawesome-all.min.js"></script>
+    <script src="js/popper.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="css/main.css"/>
+    <title>Cat Chat</title>
+  </head>
+  <body>
+    <div class="modal" tabindex="-1" role="dialog" data-show="true" data-keyboard="false" data-focus="true" id="login-modal" data-backdrop="static">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content" id="login-dialog">
+            <div class="modal-header" id="login-modal-header">
+                <h5 class="modal-title">登录/注册</h5>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>用户名</p>
+                <input type="text" class="form-control" id="input-username">
+                <p> </p>
+                <p>密码</p>
+                <input type="text" class="form-control" id="input-password">
+                <p> </p>
+                <div class="alert alert-danger" role="alert" id="error-modal">
+                </div>
+            </div>
+            <div class="modal-footer" id="login-modal-footer">
+                <button type="button" class="btn btn-primary" id="login-button">登录</button>
+                <button type="button" class="btn btn-secondary" id="register-button">注册</button>
+            </div>
+            </div>
+        </div>
+    </div>
+
+    <nav class="navbar navbar-light" style="background-color: #222;">
+        <div class="navbar-text">
+            <img src="assets/icon.png" width="50" height="50" id="app-icon" alt="">
+            <span id="navbar-title"></span>
+        </div>
+    </nav>
+
+    <div id="container">
+        <div class="row" id="container-row">
+            <div id="user-column" class="col-3">
+                <div class="user-search-card">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search" aria-label="Username" id="input-search-user">
+                    </div>
+                </div>
+                <div class="user-group" id="all-online-user-group">
+                    <div class="group-title">全部用户 - <span id="online-users">0</span></div>
+                    <div id="user-list">
+                    </div>
+                </div>
+
+                <div class="user-group" id="friend-group">
+                    <div class="group-title">好友 - <span id="friend-users">0</span></div>
+                    <div id="friend-list">
+                    </div>
+                </div>
+            </div>
+
+            <div id="chat-message-column" class="col-9">
+                <div id="chat-title">
+                    
+                </div>
+                <div id="chat-message">
+                </div>
+
+                <div id="input-message-group" class="input-group">
+                    <input type="text" class="form-control" id="input-message">
+                    <span class="input-group-btn">
+                        <button class="btn btn-secondary" id="send-message-button" type="button">发送</button>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+  </body>
+
+  <script src="js/func.js"></script>
+</html>

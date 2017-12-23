@@ -7,12 +7,14 @@ class World;
 #include <vector>
 #include <pthread.h>
 #include <string>
+#include <map>
 
 using namespace std;
 
 class World {
 private:
     vector<User*> users;
+    vector<pair<string, string> > pending_friend_requests;
     static World* instance;
     int main_socketfd;
 
@@ -27,6 +29,8 @@ public:
     bool hasUser(string username);
     string getAllUserString();
     bool handleSendMessage(User *sender, string srecv);
+    void sendConfirmRequest(string target_username, string from_username);
+    void addFriendPair(string u1, string u2);
 };
 
 #endif

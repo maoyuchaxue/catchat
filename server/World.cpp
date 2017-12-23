@@ -114,7 +114,7 @@ bool World::handleSendMessage(User *sender, string srecv) {
     string username = srecv.substr(0, d1);
     string send_message = srecv.substr(d1+1);
 
-    string message = sender->getUsername() + "|" + send_message;
+    string message = "M:" + sender->getUsername() + "|" + send_message + "|";
 
     bool foundUser = false;
     pthread_mutex_lock(&users_mutex);
@@ -133,4 +133,65 @@ bool World::handleSendMessage(User *sender, string srecv) {
     pthread_mutex_unlock(&users_mutex);
 
     return foundUser;
+}
+
+
+void World::sendConfirmRequest(string target_username, string from_username) {
+    string message = "F:" + from_username + "|";
+
+    bool foundUser = false;
+    pthread_mutex_lock(&users_mutex);
+
+    for (int i = 0; i < users.size(); i++) {
+        if (target_username == users[i]->getUsername()) {
+            foundUser = true;
+            int socketid = users[i]->getSocketId();
+            send(socketid, message.c_str(), strlen(message.c_str()), 0);
+            break;
+        }
+    }
+
+    pending_friend_requests.push_back(make_pair(target_username, from_username));
+
+    pthread_mutex_unlock(&users_mutex); 
+}
+
+void World::addFriendPair(string u1, string u2) {
+
+    pthread_mutex_lock(&users_mutex);
+    for (int i = 0; i < users.size(); i++) {
+        if (u1 == users[i]->getUsername()) {
+            FriendList *friendList = users[i]->getFriendList();
+            friendList->addFriend(u2);
+            string message = friendList->getFriendListString();
+
+            int socketid = users[i]->getSocketId();
+            send(socketid, message.c_str(), strlen(message.c_str()), 0);
+        }
+
+        if (u2 == users[i]->getUsername()) {
+            FriendList *friendList = users[i]->getFriendList();
+            friendList->addFriend(u1);
+            string message = friendList->getFriendListString();
+            
+            int socketid = users[i]->getSocketId();
+            send(socketid, message.c_str(), strlen(message.c_str()), 0);
+        }
+    }
+
+    vector<int> delete_indexes;
+
+    for (int i = 0; i < pending_friend_requests.size(); i++) {
+        pair<string, string> req = pending_friend_requests[i];
+        if ((req.first == u1 && req.second == u2) && (req.first == u2 && req.second == u1)) {
+            // is a pending request
+            delete_indexes.push_back(i);
+        }
+    }
+
+    for (int i = delete_indexes.size()-1; i >= 0; i--) {
+        pending_friend_requests.erase(pending_friend_requests.begin() + i);
+    }
+
+    pthread_mutex_unlock(&users_mutex); 
 }
