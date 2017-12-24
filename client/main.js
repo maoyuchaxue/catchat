@@ -1,6 +1,11 @@
-const {app, BrowserWindow} = require('electron')
+const {app, BrowserWindow, ipcMain} = require('electron')
 const path = require('path')
 const url = require('url')
+const fs = require('fs')
+const net = require('net')
+
+var FILE_HOST = '127.0.0.1';
+var FILE_PORT = 4395;
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -53,3 +58,72 @@ app.on('activate', () => {
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
+
+ipcMain.on('file-size', (event, arg) => {
+  var path = arg;
+
+  var stats = fs.statSync(path);
+  if (stats.isFile()) {
+    event.returnValue = stats.size;
+  } else {
+    event.returnValue = 0;
+  }
+})
+
+ipcMain.on('file-send', (event, arg) => {
+  var name = arg.name;
+  var path = arg.path;
+  var filename = arg.filename;
+  var target = arg.target;
+
+  var stats = fs.statSync(path);
+  if (stats.isFile()) {
+    if (stats.size < 1024*1024) {
+      startSendFile(name, path, target, filename, stats.size);
+      event.returnValue = "success";
+    } else {
+      event.returnValue = "错误：文件过大，无法发送！";
+    }
+  } else {
+    event.returnValue = "错误：非法文件！";
+  }
+  
+})
+
+function startSendFile(name, path, target, filename, size) {
+  console.log("start sending file " + name + path + target);
+
+  var client = new net.Socket();
+  client.connect(FILE_PORT, FILE_HOST, function() {
+
+      console.log('file socket linked: ' + FILE_HOST + ':' + FILE_PORT);
+      // 建立连接后立即向服务器发送数据，服务器将收到这些数据 
+      console.log("s:" + target + "|" + name + "|" + filename + "|" + size  + "|");
+      client.write("s:" + target + "|" + name + "|" + filename + "|" + size  + "|");
+  });
+
+  client.on('data', function(data) {
+    console.log(data);
+    if (data.toString().substring(0,2) == "ok") {
+      fs.open(path, "r", function (err, fd) {
+        var buf = new Buffer(512);
+        var sendNextPatch = function (fd) {
+          fs.read(fd, buf, 0, 512, null, function (err, bytesRead, buffer) {
+            console.log("bytesread: " + bytesRead);
+            if (bytesRead > 0) {
+              client.write(buffer.slice(0, bytesRead), function(err) {
+                if (err) {
+                  return ;
+                } else {
+                  sendNextPatch(fd);
+                }
+              });
+            }
+          })
+        };
+        sendNextPatch(fd);
+      })
+    }
+  })
+
+}

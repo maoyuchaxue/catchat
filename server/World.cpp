@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include "const.h"
 #include "Verify.h"
+#include "FileServer.h"
 // #include <netdb.h>
 
 World* World::instance = 0; 
@@ -137,6 +138,43 @@ bool World::handleSendMessage(User *sender, string srecv) {
     return foundUser;
 }
 
+
+bool World::handleSendFile(User *sender, string srecv) {
+    int d1 = srecv.find('|', 0);
+    if (d1 == -1) {
+        return false;
+    }
+
+    int d2 = srecv.find('|', d1+1);
+    if (d2 == -1) {
+        return false;
+    }
+
+    int d3 = srecv.find('|', d2+1);
+    if (d3 == -1) {
+        return false;
+    }
+
+    string target = srecv.substr(0, d1);
+    string filename = srecv.substr(d1+1, d2-d1-1);
+    int size = stoi(srecv.substr(d2+1, d3-d2-1));
+
+    string from = sender->getUsername();
+
+    FileInfo info;
+    info.target = target;
+    info.name = filename;
+    info.size = size;
+    info.from = from;
+    info.isSendingIn = false;
+
+    FileServer::getFileServer()->addPendingFileInfo(info);
+    return true;
+}
+
+void World::notifyFileSendingToUser(FileInfo file_info) {
+    printf("notify user that file is sent!\n");
+}
 
 void World::sendConfirmRequest(string target_username, string from_username) {
     if (target_username == from_username) {

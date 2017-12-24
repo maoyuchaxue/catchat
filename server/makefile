@@ -1,5 +1,5 @@
-main : FriendList.o LatestMessage.o User.o Verify.o main.o World.o FriendList.o 
-	g++ -pthread -std=c++11 -o catchat LatestMessage.o User.o Verify.o main.o World.o FriendList.o 
+main : FriendList.o LatestMessage.o User.o Verify.o main.o World.o FriendList.o FileServer.o
+	g++ -pthread -std=c++11 -o catchat LatestMessage.o User.o Verify.o main.o World.o FriendList.o FileServer.o
 
 LatestMessage.o : LatestMessage.h LatestMessage.cpp
 	g++ -std=c++11 -c -o LatestMessage.o LatestMessage.cpp
@@ -15,6 +15,9 @@ World.o : World.h World.cpp User.h
 
 Verify.o : Verify.h Verify.cpp
 	g++ -std=c++11 -c -o Verify.o Verify.cpp
+
+FileServer.o : FileServer.h FileServer.cpp
+	g++ -std=c++11 -c -o FileServer.o FileServer.cpp
 
 main.o : main.cpp World.h User.h
 	g++ -std=c++11 -c -o main.o main.cpp

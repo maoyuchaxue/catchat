@@ -1,4 +1,7 @@
 
+const { ipcRenderer } = require('electron');
+
+
 var net = require('net');
 
 var HOST = '127.0.0.1';
@@ -45,6 +48,9 @@ client.on('data', function(data) {
             break;
         case 'r': 
             checkRegisterReturn(dstr.substring(2));
+            break;
+        case 'f':
+            getSendFileOK(dstr.substring(2));
             break;
         case 'u':
             checkAllUsers(dstr.substring(2));
@@ -331,6 +337,65 @@ function openPendingInfo(name) {
     $("#confirm-modal").modal();
 }
 
+function openFileModal() {
+    $("#file-modal").modal();
+}
+
+var global_file = null;
+
+function dropFileHandler(e) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    for (let f of e.dataTransfer.files) {
+        console.log("dragging in file " + f.path);
+        global_file = f;
+        if (f.name.indexOf('|') >= 0) {
+            $("#file-dropper").text("错误：文件名中不能含有|,:特殊字符");
+            break;
+        }
+
+        var fsize = ipcRenderer.sendSync('file-size', f.path);
+        if (fsize == 0) {
+            $("#file-dropper").text("错误：无效文件或空文件");
+            break;
+        }
+
+        client.write("f:" + chating_with_username + "|" + f.name + "|" + fsize + "|");
+
+        break; // only one file allowed
+    }
+
+}
+
+function getSendFileOK(recvStr) {
+    if (recvStr != "success") {
+        $("#file-dropper").text("错误：不明错误……");
+        return ;
+    }
+
+    var res = ipcRenderer.sendSync('file-send', {
+        name : global_username,
+        path : global_file.path,
+        target : chating_with_username,
+        filename : global_file.name
+    });
+
+    if (res != "success") {
+        $("#file-dropper").text(res);
+    } else {
+        $("#file-modal").modal('hide');
+    }
+}
+
+document.getElementById("file-dropper").addEventListener("drop", dropFileHandler);
+document.getElementById("file-dropper").addEventListener("dragover", function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+});
+
+
+
 $("#send-message-button").click(sendChatMessage);
 $("#input-message-group").hide();
 $("#toggle-friend-button").hide();
@@ -338,3 +403,6 @@ $("#toggle-friend-button").click(toggleFriend);
 $("#confirm-friend-button").click(acceptFriendRequest);
 $("#refuse-friend-button").click(refuseFriendRequest);
 $("#friend-operation-button").click(toggleFriend);
+$("#open-file-button").click(openFileModal);
+
+$("#file-modal").modal('hide');

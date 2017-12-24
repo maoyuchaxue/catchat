@@ -55,6 +55,17 @@
         </div>
     </div>
 
+
+    <div class="modal" tabindex="-1" role="dialog" data-show="true" data-keyboard="false" data-focus="true" id="file-modal">
+        <div class="modal-dialog" role="document" id="file-dropper-wrapper">
+            <div class="modal-content" id="file-dropper">
+                <span>
+                    拖拽文件至此处！
+                </span>
+            </div>
+        </div>
+    </div>
+
     <nav class="navbar navbar-light" style="background-color: #222;">
         <div class="navbar-text">
             <img src="assets/icon.png" width="50" height="50" id="app-icon" alt="">
@@ -98,6 +109,9 @@
                 </div>
 
                 <div id="input-message-group" class="input-group">
+                    <span class="input-group-btn">
+                        <button class="btn btn-secondary" id="open-file-button" type="button">上传文件</button>
+                    </span>
                     <input type="text" class="form-control" id="input-message">
                     <span class="input-group-btn">
                         <button class="btn btn-secondary" id="send-message-button" type="button">发送</button>

@@ -44,6 +44,7 @@ void* User::run(void *user) {
 
     while (1) {
         char buf[MAX_BUF_SIZE];
+        memset(buf, 0, sizeof(buf));
         long recvbytes = recv(socketid, buf, MAX_BUF_SIZE, 0);
         if (recvbytes <= 0) {
             that->getWorld()->removeUser(socketid);
@@ -51,13 +52,15 @@ void* User::run(void *user) {
             break;
         }
 
-        printf("get %s\n", buf);
 
         if (buf[1] != ':') {
             continue;
         }
 
         string srecv = buf;
+        srecv = srecv.substr(0, recvbytes);
+
+        printf("get %s\n", srecv.c_str());
 
         string res_str;
         const char* res;
@@ -123,6 +126,18 @@ void* User::run(void *user) {
 
 
         case 'f': // send file
+            if (that->getWorld()->handleSendFile(that, srecv.substr(2))) {
+                res_str = "f:success";
+            } else {
+                res_str = "f:error";
+            }
+            printf("f result: %s\n", res_str.c_str());
+            res = res_str.c_str();
+            send_length = strlen(res);
+            send(socketid, res, send_length, 0);
+            break;
+
+        case 'w': // download file
             break;
 
         case 'l': // get friend list
