@@ -196,9 +196,13 @@ function setChatWith(username) {
         for (var i = 0; i < messages.length; i++) {
             message = messages[i];
             if (message.side == 0) {
-                $("#chat-message").append($('<div class="chat-cur-user"></div>').text(decodeURI(message.text)));
+                var t_message = $('<div class="chat-cur-user"></div>');
+                t_message.append($('<span class="message-cur-user"></span>').text(decodeURI(message.text)));
+                $("#chat-message").append(t_message);
             } else {
-                $("#chat-message").append($('<div class="chat-other-user"></div>').text(decodeURI(message.text)));
+                var t_message = $('<div class="chat-other-user"></div>');
+                t_message.append($('<span class="message-other-user"></span>').text(decodeURI(message.text)));
+                $("#chat-message").append(t_message);
             }
         }
     }
@@ -230,8 +234,11 @@ function sendChatMessage() {
         }];
     }
 
-    $("#chat-message").append($('<div class="chat-cur-user"></div>').text(cur_message));
+    var t_message = $('<div class="chat-cur-user"></div>');
+    t_message.append($('<span class="message-cur-user"></span>').text(cur_message));
+    $("#chat-message").append(t_message);
     client.write("m:" + chating_with_username + "|" + encodeURI(cur_message) + "|");
+    $("#input-message").val("");
 }
 
 function getChatMessage(recvStr) {
@@ -258,7 +265,9 @@ function getChatMessage(recvStr) {
     }
 
     if (from_user == chating_with_username) {
-        $("#chat-message").append($('<div class="chat-other-user"></div>').text(decodeURI(message))); 
+        var t_message = $('<div class="chat-other-user"></div>');
+        t_message.append($('<span class="message-other-user"></span>').text(decodeURI(message)));
+        $("#chat-message").append(t_message);
     }
 }
 

@@ -119,12 +119,34 @@ body {
 }
 
 .chat-cur-user {
-    color : red;
+    display: flex;
+    justify-content: flex-end;
+    /* color : red; */
+    width: 100%;
+    margin-top: 15px;
 }
 
 .chat-other-user {
-    color : blue;
+    display: flex;
+    justify-content: flex-start;
+    /* color : blue; */
+    width: 100%;
+    margin-top: 15px;
+    padding-right: 30px;
 }
+
+.message-cur-user {
+    padding: 15px;
+    border-radius: 5px;
+    background: #666;
+}
+
+.message-other-user {
+    padding: 15px;
+    border-radius: 5px;
+    background: #777;
+}
+
 
 .chat-title {
     font-size: 20px;
@@ -161,3 +183,4 @@ body {
     display: flex;
     justify-content: space-between;
 }
+
