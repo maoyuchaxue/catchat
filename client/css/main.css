@@ -46,6 +46,24 @@ body {
     border-color: #666;
 }
 
+#download-finish-modal {
+    background: #333;
+}
+
+#download-finish-dialog {
+    background: #444;
+    color: #ccc;
+}
+
+#download-finish-modal-header {
+    border-color: #666;
+}
+
+#download-finish-modal-footer {
+    border-color: #666;
+}
+
+
 
 #app-icon {
     border-radius: 20px;
@@ -80,9 +98,12 @@ body {
 
 #chat-message {
     overflow-y: scroll;
+    overflow-x: hidden;
     flex-grow: 1;
     margin-bottom: 15px;
     margin-top: 15px;
+    word-break: break-all;
+    word-wrap: break-word;
 }
 
 .user-group {
@@ -137,6 +158,7 @@ body {
 
 .message-cur-user {
     padding: 15px;
+    margin-right: 15px;
     border-radius: 5px;
     background: #666;
 }
@@ -208,3 +230,13 @@ body {
     color: rgba(64,64,64,0.8);
 }
 
+
+.file-download-button {
+    margin-left: 10px;
+    color: #ccc;
+    cursor: pointer;
+}
+
+.file-download-button:hover {
+    color: #fff;
+}

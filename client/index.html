@@ -55,6 +55,23 @@
         </div>
     </div>
 
+    <div class="modal" tabindex="-1" role="dialog" data-show="true" data-keyboard="false" data-focus="true" id="download-finish-modal">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content" id="download-finish-dialog">
+            <div class="modal-header" id="download-finish-modal-header">
+                <h5 class="modal-title">下载完成</h5>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div><span id="download-file-name"></span>已下载完成，共<span id="download-file-size"></span>字节</div>
+            </div>
+            <div class="modal-footer" id="download-finish-modal-footer">
+                <button type="button" class="btn btn-primary" id="open-file-path-button">在文件夹中查看</button>
+                <button type="button" class="btn btn-secondary" id="close-download-modal-button">关闭</button>
+            </div>
+            </div>
+        </div>
+    </div>
 
     <div class="modal" tabindex="-1" role="dialog" data-show="true" data-keyboard="false" data-focus="true" id="file-modal">
         <div class="modal-dialog" role="document" id="file-dropper-wrapper">

@@ -365,9 +365,34 @@ void FileThread::startSendFile() {
 
     FileServer::getFileServer()->setPendingFileInfoSent(file_info);
     World::getWorld()->notifyFileSendingToUser(file_info);
+
 }
 
 void FileThread::startReceiveFile() {
 
+    ifstream fin;
 
+    string local_file_addr = FileServer::getLocalFileAddr(file_info);
+    fin.open(local_file_addr, ios::in | ios::binary);
+
+    int total_sent = 0;
+
+    const int SEND_BATCH = 512;
+    char buf[SEND_BATCH];
+    while (total_sent < file_info.size) {
+        memset(buf, 0, sizeof(buf));
+        if (total_sent + SEND_BATCH > file_info.size) {
+            fin.read(buf, file_info.size - total_sent);
+        } else {
+            fin.read(buf, SEND_BATCH);
+        }
+        printf("send %ld file data, total %d\n", fin.gcount(), total_sent);
+        total_sent += fin.gcount();
+        send(socketid, buf, fin.gcount(), 0);
+        if (fin.gcount() == 0) {
+            break;
+        }
+    }
+
+    fin.close();
 }

@@ -11,6 +11,7 @@ var logged_in = false;
 var global_username = null;
 var chating_with_username = null;
 var pending_request_username = null;
+var global_search_word = "";
 
 var allusers = [];
 var tot_users = 0;
@@ -63,6 +64,9 @@ client.on('data', function(data) {
             break;
         case 'F':
             getFriendRequest(dstr.substring(2));
+            break;
+        case 'W':
+            getIncomingFile(dstr.substring(2));
             break;
     }
     
@@ -154,18 +158,24 @@ function checkAllUsers(retStr) {
     allusers = retStr.split('|');
     tot_users = allusers.length-1;
     $("#online-users").text(tot_users);
+
+    refreshAllUserList();
+    client.write("l:");
+}
+
+function refreshAllUserList() {
     $("#user-list").empty();
 
     for (var i = 0; i < allusers.length-1; i++) {
-        $("#user-list").append($('<div class="user-card online-user"></div>').text(allusers[i]));
-        console.log("user: " + allusers[i]);
+        if (allusers[i].toLowerCase().indexOf(global_search_word) >= 0) {
+            $("#user-list").append($('<div class="user-card online-user"></div>').text(allusers[i]));
+            console.log("user: " + allusers[i]);
+        }
     }
     
     $(".online-user").click(function() {
         setChatWith($(this).text());
     })
-
-    client.write("l:");
 }
 
 
@@ -173,11 +183,19 @@ function checkAllFriends(retStr) {
     allfriends = retStr.split('|');
     tot_friends = allfriends.length-1;
     $("#friend-users").text(tot_friends);
+
+    refreshFriendList();
+}
+
+function refreshFriendList() {
+
     $("#friend-list").empty();
 
     for (var i = 0; i < allfriends.length-1; i++) {
-        $("#friend-list").append($('<div class="user-card friend-user"></div>').text(allfriends[i]));
-        console.log("friend: " + allfriends[i]);
+        if (allfriends[i].toLowerCase().indexOf(global_search_word.toLowerCase()) >= 0) {
+            $("#friend-list").append($('<div class="user-card friend-user"></div>').text(allfriends[i]));
+            console.log("friend: " + allfriends[i]);
+        }
     }
 
     $(".friend-user").click(function() {
@@ -192,8 +210,10 @@ function setChatWith(username) {
 
     if (allfriends.indexOf(chating_with_username) < 0) {
         $("#friend-operation-button").text("加为好友");
+        $("#input-message-group").hide();
         return ;
     }
+
     $("#friend-operation-button").text("删除好友");
 
     messages = all_messages_with_user[username];
@@ -202,13 +222,52 @@ function setChatWith(username) {
         for (var i = 0; i < messages.length; i++) {
             message = messages[i];
             if (message.side == 0) {
-                var t_message = $('<div class="chat-cur-user"></div>');
-                t_message.append($('<span class="message-cur-user"></span>').text(decodeURI(message.text)));
-                $("#chat-message").append(t_message);
+                if (message.text) {
+                    var t_message = $('<div class="chat-cur-user"></div>');
+                    t_message.append($('<span class="message-cur-user"></span>').text(decodeURI(message.text)));
+                    $("#chat-message").append(t_message);
+                } else {
+                    var t_message = $('<div class="chat-cur-user"></div>');
+                    var t_text = $('<div class="message-cur-user"></div>');
+                    t_text.append($('<span class="file-cur-user"></span>').text("文件：" + message.file.file_name + " " + message.file.file_size + "字节"));
+                    t_message.append(t_text);
+                    $("#chat-message").append(t_message);
+                }
+
             } else {
-                var t_message = $('<div class="chat-other-user"></div>');
-                t_message.append($('<span class="message-other-user"></span>').text(decodeURI(message.text)));
-                $("#chat-message").append(t_message);
+                if (message.text) {
+                    var t_message = $('<div class="chat-other-user"></div>');
+                    t_message.append($('<span class="message-other-user"></span>').text(decodeURI(message.text)));
+                    $("#chat-message").append(t_message);
+                } else {
+
+                    var t_message = $('<div class="chat-other-user"></div>');
+                    var t_text = $('<div class="message-other-user"></div>');
+                    t_text.append($('<span class="file-other-user"></span>').text("文件：" + message.file.file_name + " " + message.file.file_size + "字节"));
+                    var download_button = null;
+
+                    if (message.file.downloaded) {
+                        download_button = $('<span class="file-download-button"></span>').text("下载完毕");
+                    } else {
+
+                        download_button = $('<span class="file-download-button"></span>').text("下载");
+                        var onDownload = function() {
+                            console.log("start download");
+                            ipcRenderer.sendSync('download-file', {
+                                target: global_username,
+                                from: chating_with_username,
+                                filename: message.file.file_name,
+                                size: message.file.file_size
+                            });
+                        };
+
+                        $(download_button).click(onDownload);
+                    }
+
+                    t_text.append(download_button);
+                    t_message.append(t_text);
+                    $("#chat-message").append(t_message);
+                }
             }
         }
     }
@@ -231,12 +290,14 @@ function sendChatMessage() {
     if (messages) {
         all_messages_with_user[chating_with_username].push({
             "side" : 0,
-            "text" : cur_message
+            "text" : cur_message,
+            "file" : null
         });
     } else {
         all_messages_with_user[chating_with_username] = [{
             "side" : 0,
-            "text" : cur_message
+            "text" : cur_message,
+            "file" : null
         }];
     }
 
@@ -261,12 +322,14 @@ function getChatMessage(recvStr) {
     if (messages) {
         all_messages_with_user[from_user].push({
             "side" : 1,
-            "text" : message
+            "text" : message,
+            "file" : null
         });
     } else {
         all_messages_with_user[from_user] = [{
             "side" : 1,
-            "text" : message
+            "text" : message,
+            "file" : null
         }];
     }
 
@@ -291,6 +354,64 @@ function getFriendRequest(reqStr) {
     if (ind >= 0) {
         pendingusers.push(reqStr.substring(0, ind));
         refreshFriendRequests();
+    }
+}
+
+function getIncomingFile(recvStr) {
+    infos = recvStr.split('|');
+    if (infos.length < 3) {
+        return ;
+    }
+
+    var from_user = infos[0];
+    var file_name = infos[1];
+    var file_size = parseInt(infos[2]);
+
+
+    messages = all_messages_with_user[from_user];
+
+    if (messages) {
+        all_messages_with_user[from_user].push({
+            "side" : 1,
+            "text" : null,
+            "file" : {
+                "file_name" : file_name,
+                "file_size" : file_size,
+                "downloaded" : false
+            }
+        });
+    } else {
+        all_messages_with_user[from_user] = [{
+            "side" : 1,
+            "text" : null,
+            "file" : {
+                "file_name" : file_name,
+                "file_size" : file_size,
+                "downloaded" : false
+            }
+        }];
+    }
+
+    if (from_user == chating_with_username) {
+        var t_message = $('<div class="chat-other-user"></div>');
+        var t_text = $('<div class="message-other-user"></div>');
+        t_text.append($('<span class="file-other-user"></span>').text("文件：" + file_name + " " + file_size + "字节"));
+        var download_button = $('<span class="file-download-button"></span>').text("下载");
+
+        var onDownload = function() {
+            console.log("start download");
+            ipcRenderer.sendSync('download-file', {
+                target: global_username,
+                from: chating_with_username,
+                filename: file_name,
+                size: file_size
+            });
+        };
+
+        $(download_button).click(onDownload);
+        t_text.append(download_button);
+        t_message.append(t_text);
+        $("#chat-message").append(t_message);
     }
 }
 
@@ -361,6 +482,36 @@ function dropFileHandler(e) {
             break;
         }
 
+        messages = all_messages_with_user[chating_with_username];
+
+        if (messages) {
+            all_messages_with_user[chating_with_username].push({
+                "side" : 0,
+                "text" : null,
+                "file" : {
+                    "file_name" : f.name,
+                    "file_size" : fsize,
+                    "downloaded" : false
+                }
+            });
+        } else {
+            all_messages_with_user[chating_with_username] = [{
+                "side" : 0,
+                "text" : null,
+                "file" : {
+                    "file_name" : f.name,
+                    "file_size" : fsize,
+                    "downloaded" : false
+                }
+            }];
+        }
+
+        var t_message = $('<div class="chat-cur-user"></div>');
+        var t_text = $('<div class="message-cur-user"></div>');
+        t_text.append($('<span class="file-cur-user"></span>').text("文件：" + f.name + " " + fsize + "字节"));
+        t_message.append(t_text);
+        $("#chat-message").append(t_message);
+
         client.write("f:" + chating_with_username + "|" + f.name + "|" + fsize + "|");
 
         break; // only one file allowed
@@ -385,8 +536,10 @@ function getSendFileOK(recvStr) {
         $("#file-dropper").text(res);
     } else {
         $("#file-modal").modal('hide');
+
     }
 }
+
 
 document.getElementById("file-dropper").addEventListener("drop", dropFileHandler);
 document.getElementById("file-dropper").addEventListener("dragover", function(e) {
@@ -406,3 +559,29 @@ $("#friend-operation-button").click(toggleFriend);
 $("#open-file-button").click(openFileModal);
 
 $("#file-modal").modal('hide');
+$("#download-finish-modal").modal('hide');
+
+var global_file_name = null;
+
+ipcRenderer.on('file-download-finished', (event, arg) => {
+    global_file_name = arg.name;
+    $("#download-file-name").text(arg.name);
+    $("#download-file-size").text(arg.size);
+    $("#download-finish-modal").modal();
+    // TODO
+});
+
+$("#close-download-modal-button").click(function() {
+    $("#download-finish-modal").modal('hide');
+});
+
+$('#open-file-path-button').click(function() {
+    $("#download-finish-modal").modal('hide');
+    ipcRenderer.send('open-download-path', global_file_name);
+});
+
+$("#input-search-user").change(function () {
+    global_search_word = $(this).val();
+    refreshAllUserList();
+    refreshFriendList();
+})

@@ -1,4 +1,5 @@
-const {app, BrowserWindow, ipcMain} = require('electron')
+
+const {app, BrowserWindow, ipcMain, webContents, shell} = require('electron')
 const path = require('path')
 const url = require('url')
 const fs = require('fs')
@@ -78,7 +79,7 @@ ipcMain.on('file-send', (event, arg) => {
 
   var stats = fs.statSync(path);
   if (stats.isFile()) {
-    if (stats.size < 1024*1024) {
+    if (stats.size < 10*1024*1024) {
       startSendFile(name, path, target, filename, stats.size);
       event.returnValue = "success";
     } else {
@@ -124,6 +125,56 @@ function startSendFile(name, path, target, filename, size) {
         sendNextPatch(fd);
       })
     }
+  })
+
+}
+
+ipcMain.on('open-download-path', (event, arg) => {
+  var path = __dirname  + "/download/" + arg;
+  shell.showItemInFolder(path);
+});
+
+ipcMain.on('download-file', (event, arg) => {
+  var from = arg.from;
+  var target = arg.target;
+  var filename = arg.filename;
+  var size = arg.size;
+
+
+  startReceiveFile(from, target, filename, size);
+
+  event.returnValue = true;
+});
+
+function startReceiveFile(from, target, filename, size) {
+
+  console.log("start receive file " + from + target + filename);
+
+  var client = new net.Socket();
+  client.connect(FILE_PORT, FILE_HOST, function() {
+
+      console.log('file socket linked: ' + FILE_HOST + ':' + FILE_PORT);
+      // 建立连接后立即向服务器发送数据，服务器将收到这些数据 
+      client.write("r:" + target + "|" + from + "|" + filename + "|" + size  + "|");
+  });
+
+  var path = __dirname  + "/download/" + filename;
+  var fd = fs.openSync(path, "w");
+
+  client.on('data', function(data) {
+    console.log("get data: " + data.length);
+    fs.writeSync(fd, data);
+  })
+
+  client.on('close', function() {
+    fs.closeSync(fd);
+    
+    win.webContents.send('file-download-finished', {
+      from: from,
+      target: target,
+      filename: filename,
+      size: size
+    });
   })
 
 }

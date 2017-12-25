@@ -138,6 +138,7 @@ void* User::run(void *user) {
             break;
 
         case 'w': // download file
+            // not implemented here, download request should be sent to file server
             break;
 
         case 'l': // get friend list

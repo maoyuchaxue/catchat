@@ -173,7 +173,21 @@ bool World::handleSendFile(User *sender, string srecv) {
 }
 
 void World::notifyFileSendingToUser(FileInfo file_info) {
-    printf("notify user that file is sent!\n");
+    printf("notify user that a file is sent to you!\n");
+    string message = "W:" + file_info.from + "|" + file_info.name + "|" + to_string(file_info.size) + "|";
+
+    pthread_mutex_lock(&users_mutex);
+
+    for (int i = 0; i < users.size(); i++) {
+        if (file_info.target == users[i]->getUsername()) {
+            int socketid = users[i]->getSocketId();
+            send(socketid, message.c_str(), strlen(message.c_str()), 0);
+            break;
+        }
+    }
+
+    pthread_mutex_unlock(&users_mutex); 
+
 }
 
 void World::sendConfirmRequest(string target_username, string from_username) {
