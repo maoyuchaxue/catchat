@@ -47,6 +47,7 @@ bool Verify::registerUser(string username, string password) {
     pthread_mutex_lock(&(Verify::mutex));
     bool exists = (Verify::users.find(username) != Verify::users.end());
     if (exists) {
+        pthread_mutex_unlock(&(Verify::mutex));
         return false;
     }
     Verify::users.insert(make_pair(username, password));

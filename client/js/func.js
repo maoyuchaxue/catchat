@@ -21,6 +21,8 @@ var pendingusers = [];
 
 var all_messages_with_user = {};
 
+var global_initing = false;
+
 var client = new net.Socket();
 client.connect(PORT, HOST, function() {
 
@@ -151,6 +153,7 @@ function checkRegisterReturn(retStr) {
 
 function initMain() {
     $("#navbar-title").text("欢迎来到Catchat, " + global_username + "!");
+    global_initing = true;
     client.write("u:"); // ask for all users
 }
 
@@ -185,6 +188,10 @@ function checkAllFriends(retStr) {
     $("#friend-users").text(tot_friends);
 
     refreshFriendList();
+    if (global_initing) {
+        global_initing = false;
+        client.write("w:");
+    }
 }
 
 function refreshFriendList() {

@@ -137,8 +137,8 @@ void* User::run(void *user) {
             send(socketid, res, send_length, 0);
             break;
 
-        case 'w': // download file
-            // not implemented here, download request should be sent to file server
+        case 'w': // get pending messages
+            that->getWorld()->notifyAllPendingMessages(that->getUsername());
             break;
 
         case 'l': // get friend list

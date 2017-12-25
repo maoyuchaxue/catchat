@@ -79,7 +79,7 @@ ipcMain.on('file-send', (event, arg) => {
 
   var stats = fs.statSync(path);
   if (stats.isFile()) {
-    if (stats.size < 10*1024*1024) {
+    if (stats.size < 30*1024*1024) {
       startSendFile(name, path, target, filename, stats.size);
       event.returnValue = "success";
     } else {

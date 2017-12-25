@@ -130,9 +130,10 @@ bool World::handleSendMessage(User *sender, string srecv) {
         }
     }
 
-    // if (!foundUser) {
+    if (!foundUser) {
+        pending_messages.push_back(make_pair(username, message));
+    }
 
-    // }
     pthread_mutex_unlock(&users_mutex);
 
     return foundUser;
@@ -288,4 +289,35 @@ void World::syncWithAllExcept(int exceptId) {
             send(tid, res_str.c_str(), strlen(res_str.c_str()), 0);
         }
     }
+}
+
+void World::notifyAllPendingMessages(string target_username) {
+    pthread_mutex_lock(&users_mutex);
+
+    int ind = -1;
+    for (int i = 0; i < users.size(); i++) {
+        string ts = users[i]->getUsername();
+        if (ts == target_username) {
+            ind = i;
+        }
+    }
+
+    int socketid = users[ind]->getSocketId();
+    vector<int> delete_indexes;
+
+    for (int i = 0; i < pending_messages.size(); i++) {
+        pair<string, string> req = pending_messages[i];
+        if (req.first == target_username) {
+            sleep(1);
+            send(socketid, req.second.c_str(), req.second.size(), 0);
+            delete_indexes.push_back(i);
+        }
+    }
+
+    for (int i = delete_indexes.size()-1; i >= 0; i--) {
+        pending_messages.erase(pending_messages.begin() + i);
+    }
+
+
+    pthread_mutex_unlock(&users_mutex); 
 }

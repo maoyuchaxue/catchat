@@ -16,6 +16,7 @@ class World {
 private:
     vector<User*> users;
     vector<pair<string, string> > pending_friend_requests;
+    vector<pair<string, string> > pending_messages;
     static World* instance;
     int main_socketfd;
 
@@ -36,6 +37,7 @@ public:
     void addFriendPair(string u1, string u2); // notify the friend request is accepted
     void syncWithAllExcept(int exceptId); // notify all users when online user list changes
     void notifyFileSendingToUser(FileInfo file_info); // notify a file is sending to you
+    void notifyAllPendingMessages(string target_username); // send all pending messages to someone
 };
 
 #endif
